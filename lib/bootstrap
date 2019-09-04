@@ -43,9 +43,27 @@ Import::Main()
         fi
     done
 
+    if [[ "${package}" == "/"* || "${package}" == "./"* ]]; then
+        if ! Import::File "${package}"; then
+            printf "Package '%s' could not be found" "${package}" 1>&2
+            exit 1
+        fi
+
+        IMPORTED_FILES+=("${package}")
+
+        return 0
+    fi
+
+    local handled=1
     for source in "${IMPORT_SOURCES[@]}"; do
         if [[ "${source}" == "http://"* || "${source}" == "https://"* ]]; then
             if Import::HTTP "${source}" "${package}" "${cacheFile}"; then
+                handled=0
+                break
+            fi
+        elif [[ "${source}" == "/"* || "${source}" == "./"* ]]; then
+            if Import::File "${source}/${package}"; then
+                handled=0
                 break
             fi
         else
@@ -53,6 +71,11 @@ Import::Main()
             exit 1
         fi
     done
+
+    if [[ "${handled}" -eq 1 ]]; then
+        printf "[ERROR] Package '%s' not found in any sources\n" "${package}" 1>&2
+        exit 1
+    fi
 
     if [[ ! -f "${cacheFile}" ]]; then
         printf "[ERROR] Imported file not found in the cache\n" 1>&2
@@ -73,10 +96,21 @@ Import::HTTP()
     local outFile="${3}"
 
     if command -v curl 1>/dev/null 2>&1; then
-        curl --fail -sL --retry 3 -o "${outFile}" "${source}/${package}" || throw
+        curl --fail -sL --retry 3 -o "${outFile}" "${source}/${package}" || return 1
     else
-        wget -t 3 -O - -o "${outFile}" "${source}/${package}" || throw
+        wget -t 3 -O - -o "${outFile}" "${source}/${package}" || return 1
     fi
+}
+
+Import::File()
+{
+    local package="${1}"
+
+    if [[ ! -f "${package}" ]]; then
+        return 1
+    fi
+
+    builtin source "${package}"
 }
 
 Import::addHook()
