@@ -4,6 +4,10 @@
 
 * Global variables in modules are not currently supported.
 
+# Getting Started
+
+`curl -fsSL https://github.com/nulliel/bash-starter/releases/download/0.1.5/bash-starter-v0.1.5.tar.gz | tar -zx`
+
 # Creating a project
 
 ```
