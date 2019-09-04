@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+## TODO:
+##   - Readme section for automatic module detection
+##
+
+##############
+## Module List
+##############
+##
+##
+##
+declare -A __bs__module_list=()
+
+##################
+## Module Creation
+##################
+
+## Creates an empty module.
+##
+## Arguments:
+##   1 - The module name to create a module for
+##
+__bs__create_module()
+{
+    if [[ -n "${__bs__module_list[${1}]}" ]]; then
+        printf "Duplicate module `${1}`\n" 1>&2
+        exit 1
+    fi
+
+    declare -r module_arr="__bs__module_arr_${1}_${RANDOM}"
+    declare -r module_fns="__bs__module_fns_${1}_${RANDOM}"
+
+    eval "declare -Ag ${module_arr}=()"
+    eval "declare -Ag ${module_fns}=()"
+
+    eval "${module_arr}[active]=1"
+    eval "${module_arr}[fns]=${module_fns}"
+
+    __bs__module_list["${1}"]="${module_arr}"
+}
+
+## Adds a function definition to a module.
+##
+## Arguments:
+##   1 - The module name.
+##   2 - The function name.
+##   3 - The function definition.
+##
+__bs__add_module_fn()
+{
+    if declare -f "${2}" 1>/dev/null 2>&1; then
+        printf "Module method '${2}' is showing an existing function.\n" 1>&2
+        exit 1
+    fi
+
+    declare -nr module="${__bs__module_list[${1}]}"
+    declare -nr fns="${module[fns]}"
+
+    if [[ -n "${fns[${2}]}" ]]; then
+        printf "Duplicate method '${2}' on module '${1}'\n"
+        exit 1
+    fi
+
+    fns["${2}"]="${3}"
+
+    __bs__stub_fn "${2}"
+}
+
+########################
+## Module Function Stubs
+########################
+
+## Stubs a modules function definition.
+##
+## Arguments:
+##   1 - The function name.
+##
+__bs__stub_fn()
+{
+    unset -f "${1}"
+    eval "${1}() { __bs__stub_fn_def; }"
+}
+
+##
+##
+##
+__bs__stub_fn_def()
+{
+    printf "Do not call functions directly. Use their module syntax.\n"
+    exit 1
+}
+
+##########
+## Helpers
+##########
+
+

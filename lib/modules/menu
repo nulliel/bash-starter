@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# module
+
+run()
+{
+    local length="${#}"
+    local items=()
+
+    local init=""
+
+    if [[ $((length % 3)) -ne 0 ]]; then
+        init="$1"
+        shift
+        length=$(( length - 1 ))
+    fi
+
+    length=$((length / 3))
+
+    i=0
+    while [[ "${#}" -ne 0 ]]; do
+        varname="menu_${i}_${RANDOM}"
+
+        items["${i}"]="$varname"
+
+        eval "local ${varname}=('${1}' '${2}' '${3}' '0')"
+
+        i=$((i + 1))
+        shift
+        shift
+        shift
+    done
+
+    while :; do
+        if [[ -n "$init" ]]; then
+            "$init"
+        fi
+
+        for i in $(seq 1 "${length}"); do
+            local arr="${items[$(( i - 1 ))]}"
+            declare -n list="$arr"
+
+
+            printf " %i) %s\n" "${i}" "$(menu.item "${list[3]}" "${list[0]}" "${!list[1]}")"
+        done
+
+        printf " d) done\n"
+
+        local option
+        read -r -p "Enter your selection: " option
+
+        case "${option}" in
+            d)
+                return
+                ;;
+            *)
+                if [[ "${option}" -gt length ]] || [[ "${option}" -le 0 ]]; then
+                    invalid_option
+                fi
+
+                local arr="${items[$(( option - 1 ))]}"
+                declare -n list="$arr"
+
+                "${list[2]}"
+
+                if [[ "$?" -ne 0 ]]; then
+                    exit 1
+                fi
+
+                list[3]=1
+        esac
+
+    done
+}
+
+##
+# Prints a colored checkbox
+##
+checkbox()
+{
+    if [[ "${1}" -eq 1 ]]; then
+        printf "%s[%s%s%s%s%s]%s\n" \
+               "${FONT_BOLD}${FONT_BLUE}"   \
+               "${FONT_RESET}"   \
+               "${FONT_BOLD}"    \
+               "${FONT_OK}" \
+               "${FONT_RESET}"   \
+               "${FONT_BOLD}${FONT_BLUE}"   \
+               "${FONT_RESET}"
+    else
+        printf "%s[ ]%s\n" "${FONT_BOLD}${FONT_BLUE}" "${FONT_RESET}"
+    fi
+}
+
+## Print a menu item in the following format:
+##   [ ] text [state]
+##
+item()
+{
+    local state=""
+
+    if [[ "$1" -eq 1 && "$3" != "" ]]; then
+        state="${FONT_BOLD}${FONT_GREEN}[${FONT_RESET}${3}${FONT_BOLD}${FONT_GREEN}]${FONT_RESET}"
+    fi
+
+    printf "%s %s%s%s %s"     \
+           "$(menu.checkbox "$1")" \
+           "${FONT_BOLD}"     \
+           "${2}"             \
+           "${FONT_RESET}"    \
+           "${state}"
+}

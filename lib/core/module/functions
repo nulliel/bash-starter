@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+__bs__add_module_functions()
+{
+    coproc_send "declare -F"
+
+    declare -a functions=(
+        $(coproc_read)
+    )
+
+    local i=0
+
+    for fn in "${functions[@]}"; do
+        i=$((i + 1))
+        if [[ "${i}" -ne 3 ]]; then
+            continue
+        fi
+        i=0
+
+        if [[ "$(xxd -pu <<< "$fn")" == "0a" ]]; then
+            continue
+        fi
+
+
+
+        __bs__add_module_function "$1" "$fn"
+    done
+}
+
+__bs__add_module_function()
+{
+    declare -nr functions="$(__bs__module_info "$1" "functions")"
+
+    if [[ -n "${functions[$2]+exists}" ]]; then
+        printf "Duplicate method '%s' on module '%s'\n" "$2" "$1" 1>&2
+        exit 1
+    fi
+
+    functions["$2"]="$(__bs__get_module_function "$2")"
+
+    __bs__stub_fn "${2}"
+}
+
+__bs__get_module_functions()
+{
+    coproc_send "declare -F"
+    coproc_read
+}
+
+__bs__get_module_function()
+{
+    coproc_send "declare -f $1"
+    coproc_read
+}
+
+__bs__stub_fn()
+{
+    unset -f "${1}"
+    eval "${1}() { __bs__stub_fn_def; }"
+}
+
+__bs__stub_fn_def()
+{
+    printf "Do not call functions directly. Use their module syntax. AT %s\n" "$(caller 1)" 1>&2
+    exit 1
+}

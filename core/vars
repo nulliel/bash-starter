@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+public()
+{
+    __bs__add_module_var ""
+}
+
+private()
+{
+    __bs__add_module_var ""
+}

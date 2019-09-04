@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# module
+
+## Copyright (c) 2018 helmuthdu <helmuthdu@gmail.com>
+## Copyright (c) 2018 Stephen Ribich <stephen.ribich@gmail.com>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+################################################################################
+## Message Attributes
+################################################################################
+
+const FONT_BOLD  "$(tput bold)"
+const FONT_RESET "$(tput sgr0)"
+
+info()
+{
+    echo "TEST"
+}
+
+# FONT_BOLD="$(tput bold)"
+# FONT_RESET="$(tput sgr0)"
+
+# Colors
+# FONT_RED="$(tput setaf 1)"
+# FONT_GREEN="$(tput setaf 2)"
+# FONT_YELLOW="$(tput setaf 3)"
+# FONT_BLUE="$(tput setaf 4)"
+# FONT_PURPLE="$(tput setaf 5)"
+# FONT_CYAN="$(tput setaf 6)"
+# FONT_WHITE="$(tput setaf 7)"
+
+# FONT_LIGHTNING='\xE2\x9A\xA1'
+# FONT_COG='\xE2\x9A\x99'
+
+# Bold Colors
+# FONT_BRED="${FONT_BOLD}${FONT_RED}"
+# FONT_BGREEN="${FONT_BOLD}${FONT_GREEN}"
+# FONT_BYELLOW="${FONT_BOLD}${FONT_YELLOW}"
+# FONT_BBLUE="${FONT_BOLD}${FONT_BLUE}"
+# FONT_BPURPLE="${FONT_BOLD}${FONT_PURPLE}"
+# FONT_BCYAN="${FONT_BOLD}${FONT_CYAN}"
+# FONT_BWHITE="${FONT_BOLD}${FONT_WHITE}"
+
+# Prompts
+# SELECTION_PROMPT="Enter your selection: "
+
+
+
+################################################################################
+## Terminal Normalization
+################################################################################
+
+## Sets the console width to the maximum available to the terminal.
+##
+#set_columns()
+#{
+#    COLUMNS="$(tput cols)"
+#}
+
+################################################################################
+## Message Headers
+################################################################################
+
+## Prints a horizontal rule of the character "=" that fills the width of the
+## console.
+##
+## $1 - Character to print
+##
+print_line()
+{
+    local print_char="="
+
+    if [[ "$#" -ge 1 ]]; then
+        print_char="${1:0:1}"
+    fi
+
+    printf "%$(tput cols)s\n" | tr " " "${print_char}"
+}
+
+## Prints a header on top of the terminal. This clears the terminal.
+##
+## $1 - Text to print
+##
+print_title()
+{
+    clear
+    print_line
+
+    printf "%s%s%s\n"      \
+           "${FONT_BOLD}"  \
+           "${1}"          \
+           "${FONT_RESET}" \
+        | fold -sw "$(tput cols)"
+
+    print_line
+}
+
+################################################################################
+## Message Types
+################################################################################
+
+## Prints a bold message to the terminal.
+##
+## $1 - Text to print.
+##
+print_info()
+{
+    printf "%s%s%s\n"      \
+           "${FONT_BOLD}"  \
+           "${1}"          \
+           "${FONT_RESET}" \
+        | fold -sw "$(tput cols)"
+}
+
+## Prints a bold yellow warning message to the terminal.
+##
+## $1 - Text to print.
+##
+print_warning()
+{
+    printf "%s%s%s\n"        \
+           "${FONT_BYELLOW}" \
+           "${1}"            \
+           "${FONT_RESET}"   \
+        | fold -sw "$(tput cols)"
+}
+
+## Prints a bold red error message to the terminal.
+##
+## $1 - Text to print.
+##
+print_error()
+{
+    printf "%s%s%s\n"      \
+           "${FONT_BRED}"  \
+           "${1}"          \
+           "${FONT_RESET}" \
+        | fold -sw "$(tput cols)"
+}
+
+################################################################################
+## Prompts
+################################################################################
+
+## Sets the terminal prompt used by the "select" command.
+##
+## $1 - Prompt to set
+##
+set_prompt()
+{
+    PS3="${SELECTION_PROMPT}"
+
+    if [[ "$#" -ge 1 ]]; then
+        PS3="${1}"
+    fi
+}
+
+## Verifies that the following file descriptors are open in the terminal:
+##
+##   - STDIN
+##   - STDOUT
+##   - STDERR
+##
+## If any of these descriptors are not available, the script will error
+## and exit.
+##
+check_file_descriptors()
+{
+    echo "${BASH_SUBSHELL}"
+
+    if [[ ! -t 0 ]]; then
+        printf "STDIN is not available"
+        exit 1
+    fi
+
+    if [[ ! -t 1 ]]; then
+        printf "STDOUT is not available"
+        exit 1
+    fi
+
+    if [[ ! -t 2 ]]; then
+        printf "STDERR is not available"
+        exit 1
+    fi
+}
+
+# check_file_descriptors
+
+ui_main()
+{
+    printf "hello\n"
+}
+
+# source "./color"

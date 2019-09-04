@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# module
+
+## Copyright (c) 2018 helmuthdu <helmuthdu@gmail.com>
+## Copyright (c) 2018 Stephen Ribich <stephen.ribich@gmail.com>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#on_activate()
+#{
+#    set -o errtrace
+#
+#    trap "exception.handle \$? \$BASH_COMMAND" ERR
+#}
+
+
+####################
+## Exception Handler
+####################
+handle()
+{
+    # Use the default IFS.
+    local IFS=$' \t\n'
+
+    local exit_code="${1}"
+    shift || :
+
+    local script="${BASH_SOURCE[1]#./}"
+    local lineno="${BASH_LINENO[0]}"
+
+    local object="$*"
+
+#    exception.fill
+#    exception.print
+}
+
+####################
+## Exception Helpers
+####################
+fill()
+{
+    local IFS=$'\n'
+
+#    for element in $(exception.dump 3); do
+#        exception+=( "${element}" )
+#    done
+}
+
+dump()
+{
+    local -i start="${1:-1}"
+    local -i i=0
+
+    IFS=$' \t\n'
+
+    while caller $i >/dev/null; do
+        if (( $i + 1 >= $start )); then
+            local -a trace=( $(caller $i) )
+
+            echo "${trace[0]}"
+            echo "${trace[1]}"
+            echo "${trace[@]:2}"
+        fi
+
+        i+=1
+    done
+}
