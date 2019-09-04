@@ -4,7 +4,7 @@ declare -g BOOTSTRAP_DIR && BOOTSTRAP_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)/l
 declare -g CACHE_DIR="${BOOTSTRAP_DIR}/.cache"
 
 declare -ag IMPORT_SOURCES=(
-    # "${CACHE_DIR}"
+    "${CACHE_DIR}"
     "https://raw.githubusercontent.com/nulliel/bash-starter/master/lib/modules"
 )
 

@@ -14,6 +14,13 @@ set -o errexit  # Exit when a command returns a non-zero status code
 set -o nounset  # Exit when an unset variable is used
 set -o pipefail # Exit when a command fails in a pipe. eg. command_will_fail | piped_command
 
+##-- Function Stubs -----------------------------------------------------------
+shopt -s expand_aliases
+
+alias import="Import::Main"
+alias source="Import::Main"
+alias .="Import::Main"
+
 ##-- Importing ----------------------------------------------------------------
 
 declare -a IMPORT_HOOKS=()
@@ -65,8 +72,6 @@ Import::HTTP()
     local package="${2}"
     local outFile="${3}"
 
-    echo "${source}/${package}"
-
     if command -v curl 1>/dev/null 2>&1; then
         curl --fail -sL --retry 3 -o "${outFile}" "${source}/${package}" || throw
     else
@@ -101,14 +106,6 @@ Import::runHooks()
     return 0
 }
 
-
-
-
-
-
-
-
-
 ##
 # Ensures that the library will only be loaded once.
 #
@@ -129,19 +126,13 @@ __bs__main()
 {
     __bs__bootstrap
 
+    ##################
+    ## Default Modules
+    ##################
     mkdir -p "${CACHE_DIR}"
 
-    Import::Main "module"
-    Import::Main "print"
-
-    print.title "hi"
-
-exit 0
-
-
-
-
-
+    import "module"
+    import "print"
 
     ##
     # When scripts are called, their working directory is the directory in which
@@ -164,49 +155,17 @@ exit 0
         $(type -p greadlink readlink | head -1) -f "$1"
     }
 
-    declare -g bs_root
-    declare -g bs_self
+    declare -g SCRIPT_ROOT
+    declare -g SCRIPT_SELF
 
-    bs_root="$(dirname "$(__bs__resolve_path "$0")")"
-    bs_self="$(dirname "$(__bs__resolve_path "${BASH_SOURCE[0]}")")"
+    SCRIPT_ROOT="$(dirname "$(__bs__resolve_path "$0")")"
+    SCRIPT_SELF="$(dirname "$(__bs__resolve_path "${BASH_SOURCE[0]}")")"
 
-    readonly bs_root
-    readonly bs_self
-
-    # shellcheck source=core/coproc
-    source "${bs_self}/core/coproc"
-
-    # shellcheck source=core/module/detect
-    source "${bs_self}/core/module/detect"
-    # shellcheck source=core/module/load
-    source "${bs_self}/core/module/load"
-    # shellcheck source=core/module/module
-    source "${bs_self}/core/module/module"
-    # shellcheck source=core/module/functions
-    source "${bs_self}/core/module/functions"
-
-    # shellcheck source=core/colors
-    source "${bs_self}/core/colors"
-
-    __bs__find_modules "${bs_self}"
-
-    ############
-    ## Bootstrap
-    ############
-    activate_module print
-    # local entrypoint="${1}"
-    # shift
-
-#    bs_activate_module print
-#    __bs__activate_module exception
-
-    # $entrypoint "$@"
+    readonly SCRIPT_ROOT
+    readonly SCRIPT_SELF
 }
 
-
-shopt -s expand_aliases
-alias import="Import::Main"
-alias source="Import::Main"
-alias .="Import::Main"
-
+################
+## Default Stubs
+################
 __bs__main "$@"
