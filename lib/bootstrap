@@ -37,6 +37,10 @@ Import::Main()
     local package="${1}"
     local cacheFile="${CACHE_DIR}/${package}"
 
+    if [[ ! -d "$(dirname "${cacheFile}")" ]]; then
+        mkdir -p "$(dirname "${cacheFile}")"
+    fi
+
     for file in "${IMPORTED_FILES[@]}"; do
         if [[ "${file}" == "${package}" ]]; then
             return 0
@@ -109,12 +113,12 @@ Import::File()
     if [[ ! -f "${package}" ]]; then
         return 1
     fi
-
-    builtin source "${package}"
 }
 
 Import::addHook()
 {
+    caller 1
+
     local functionName="$1"
 
     for element in "${IMPORT_HOOKS[@]}"; do
