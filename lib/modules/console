@@ -69,13 +69,13 @@ raw()
 title()
 {
     clear
-    print.line
+    console.line
     printf "%s%s%s\n"      \
            "${FONT_BOLD}"  \
            "${1}"          \
            "${FONT_RESET}" \
         | fold -sw "$(tput cols)"
-    print.line
+    console.line
     printf "\n"
 }
 

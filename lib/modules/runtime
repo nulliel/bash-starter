@@ -6,7 +6,7 @@
 ##
 pause()
 {
-    print.line
+    console.line
 
     if [[ "${#}" -gt 0 ]]; then
         printf "%s\n" "${1}"
