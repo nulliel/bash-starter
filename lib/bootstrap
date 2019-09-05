@@ -169,8 +169,11 @@ __bs__main()
     ##################
     mkdir -p "${CACHE_DIR}"
 
+    import "core/coproc"
     import "core/module"
-    import "print"
+    import "core/colors"
+
+    import "console"
 
     ##
     # When scripts are called, their working directory is the directory in which
