@@ -128,5 +128,5 @@ activate_module()
     return 1
 }
 
-import core/coproc
+import "core/coproc"
 Import::addHook activate_module

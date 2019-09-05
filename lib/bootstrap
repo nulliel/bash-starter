@@ -165,7 +165,7 @@ __bs__main()
     ##################
     mkdir -p "${CACHE_DIR}"
 
-    import "module"
+    import "core/module"
     import "print"
 
     ##
