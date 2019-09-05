@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# module
+
+##
+# Saves the cursor position under a unique identifier
+#
+# Argument:
+#
+#   $1 :: A name to store the variable to
+##
+save()
+{
+    local cursor_y
+    local cursor_x
+
+    IFS=";" read -sdR -p $"\e[6n" cursor_y cursor_x
+
+    eval "declare -rg ${1}.y=${cursor_y}"
+    eval "declare -rg ${1}.x=${cursor_x}"
+}
+
+##
+# Restores the cursor position previously saved with
+# a unique identifier
+#
+# Argument:
+#
+#   $1 :: The name to restore
+##
+restore()
+{
+    tput cup "${1}.y" "${1}.x"
+}

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+##
+# Prints a random string with a length of `$1' bytes
+#
+# Arguments:
+#
+#   $1 :: The number of bytes to return
+##
+random()
+{
+    local numBytes="${1}"
+
+    tr -dc "a-zA-Z0-9" </dev/urandom \
+        | fold -w "${numBytes}"      \
+        | head -n 1
+}
