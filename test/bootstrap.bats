@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-CACHE_DIR="$(mktemp -d)" source "./lib/bootstrap"
-CACHE_DIR="$(mktemp -d)" source "./lib/bootstrap"
+__bs__bootstrapped=1
+source ./your_script.sh
+echo $?
+source ./your_script.sh
+echo $?
+exit 1
 
 @test "check that bootstrap can only be called once" {
     __bs__bootstrapped=0
 
-    CACHE_DIR="" source "./lib/bootstrap"
+    run source ./your_script.sh
 
     [[ "${status}" -eq 1 ]]
 }

@@ -5,4 +5,4 @@ if ! command -v bats >/dev/null 2>&1; then
     exit 1
 fi
 
-bats ./test ./test/**/*
+bats ./test # ./test/**/*

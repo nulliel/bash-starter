@@ -70,7 +70,7 @@ title()
 {
     clear
     console.line
-    printf "%s%s%s\n"      \
+    printf "%s%b%s\n"      \
            "${FONT_BOLD}"  \
            "${1}"          \
            "${FONT_RESET}" \
@@ -100,7 +100,7 @@ line()
 ##
 info()
 {
-    printf "%s%s%s\n"      \
+    printf "%s%b%s\n"      \
            "${FONT_BOLD}"  \
            "${1}"          \
            "${FONT_RESET}" \
@@ -113,7 +113,7 @@ info()
 ##
 warning()
 {
-    printf "%s%s%s\n"        \
+    printf "%s%b%s\n"        \
            "${FONT_BOLD}${FONT_YELLOW}" \
            "${1}"            \
            "${FONT_RESET}"   \
@@ -126,7 +126,7 @@ warning()
 ##
 error()
 {
-    printf "%s%s%s\n"      \
+    printf "%s%b%s\n"      \
            "${FONT_BOLD}${FONT_RED}"  \
            "${1}"          \
            "${FONT_RESET}" \
@@ -151,8 +151,25 @@ set_prompt()
     fi
 }
 
+#-- Status Indicators ------------------------------------------------------------------------------
+pass()
+{
+    printf "%sOK%s\n" "${FONT_GREEN}" "${FONT_RESET}"
+}
 
+fail()
+{
+    printf "%sERROR%s\n" "${FONT_RED}" "${FONT_RESET}" 1>&2
+}
 
+skip()
+{
+    if [[ "${#}" -eq 1 ]]; then
+        printf "%b" "$1"
+    fi
+
+    printf "%sSKIPPED%s\n" "${FONT_YELLOW}" "${FONT_RESET}"
+}
 
 #-- Definitions ------------------------------------------------------------------------------------
 errora () {
@@ -174,27 +191,7 @@ fatala () {
 }
 
 #-- Definitions ------------------------------------------------------------------------------------
-pass() {
-  printf "${FONT_GREEN}OK${FONT_RESET}"
-  sleep 0.01
-  log --linefeed
-}
 
-fail () {
-  printf "\033[1;91mERROR\033[0m\n" 1>&"${DOTFILES_FD_5}" 2>&"${DOTFILES_FD_6}"
-  sleep 0.01
-  log --linefeed
-}
-
-skip () {
-  if [[ "${#}" -eq 1 ]]; then
-    clog "$1"
-  fi
-
-  printf "\033[1;92mSKIPPED\033[0m\n" 1>&"${DOTFILES_FD_5}" 2>&"${DOTFILES_FD_6}"
-  sleep 0.01
-  log --linefeed
-}
 
 checkSuccess () {
   "$@" && pass || { fail; fatal; }

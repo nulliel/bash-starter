@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+###############
+## Bash Starter
+###############
 declare -g BOOTSTRAP_DIR && BOOTSTRAP_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)/lib"
 declare -g CACHE_DIR="${BOOTSTRAP_DIR}/.cache"
 
@@ -10,6 +13,10 @@ declare -ag IMPORT_SOURCES=(
 
 # shellcheck source=lib/bootstrap
 source "${BOOTSTRAP_DIR}/bootstrap"
+
+##############
+## Your Script
+##############
 
 ##
 # TODO: Documentation
