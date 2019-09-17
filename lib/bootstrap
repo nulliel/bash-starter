@@ -58,9 +58,9 @@ function Bootstrap::IsCacheEnabled()
 ################################################################################
 shopt -s expand_aliases
 
-alias import="bs::import_main"
-alias source="bs::import_main"
-alias .="bs::import_main"
+alias import="Import::Main"
+alias source="Import::Main"
+alias .="Import::Main"
 
 ################################################################################
 ## Import
@@ -110,7 +110,7 @@ Import::Main()
 
     IMPORTED_FILES+=("${package}")
 
-    if Import::runHooks "${importFile}"; then
+    if Import::RunHooks "${importFile}"; then
         builtin source "${importFile}"
     fi
 }
@@ -138,7 +138,7 @@ Import::System()
         return 1
     fi
 
-    if [[ ! -f "${path}" ]]; then
+    if [[ ! -f "${package}" ]]; then
         return 1
     fi
 }
