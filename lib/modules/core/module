@@ -87,13 +87,13 @@ Module::ExtractFunctions()
 {
     Coproc::Send "declare -F"
 
-    declare -a functions=(
-        $(Coproc::Read | awk '{ print $3 }')
-    )
+    local functions; mapfile -t functions < <(Coproc::Read)
 
     local activate=0
 
     for fn in "${functions[@]}"; do
+        fn="$(echo "${fn}" | awk '{ print $3 }')"
+
         if [[ "$(xxd -pu <<< "${fn}")" == "0a" ]]; then
             continue
         fi
