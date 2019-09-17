@@ -24,7 +24,7 @@
 #   0 :: If the file is a module
 #   1 :: If the file is not a module
 ##
-__bs__is_module()
+Module::IsModule()
 {
     local line; line="$(awk 'NR==2' "$1")"
 
@@ -40,7 +40,7 @@ __bs__is_module()
 #
 #   $1 :: The path of the file to load
 ##
-__bs__load_module()
+Module::Load()
 {
     local name;
 
@@ -48,46 +48,60 @@ __bs__load_module()
     name="$(basename "${1}")"
     name="${name%%.*}"
 
-    coproc_open
-    coproc_send "source '${1}'"
-    coproc_read
+    Coproc::Open
+    Coproc::Send "source '${1}'"
+    Coproc::Read
 
-    __bs__add_module_functions "$name"
+    Module::ExtractFunctions "$name"
 
-    coproc_close
+    Coproc::Close
 }
 
 ###############################################################################
 ## Module Creation
 ###############################################################################
 
-__bs__add_module_functions()
+##
+# Given an active coproc session, extracts all given functions
+# and transforms them into a module sytax.
+#
+# All functions will be prefixed with the module name.
+#
+# e.g.
+#
+# Given a module defined in `print.sh`
+#
+#   doSomething() {
+#       return 0
+#   }
+#
+# Will be called as such:
+#
+#   print.doSomething
+#
+# Arguments:
+#
+#   $1 :: The module name
+##
+Module::ExtractFunctions()
 {
-    coproc_send "declare -F"
+    Coproc::Send "declare -F"
 
     declare -a functions=(
-        $(coproc_read)
+        $(Coproc::Read)
     )
 
-    local i=0
     local activate=0
 
     for fn in "${functions[@]}"; do
-        i=$((i + 1))
-        if [[ "${i}" -ne 3 ]]; then
-            continue
-        fi
-        i=0
-
         if [[ "$(xxd -pu <<< "${fn}")" == "0a" ]]; then
             continue
         fi
 
-        __bs__stub_fn "${fn}"
+        Module::Stub "${fn}"
+        Coproc::Send "declare -f ${fn}"
 
-        coproc_send "declare -f ${fn}"
-
-        eval "${1}.$(coproc_read)"
+        eval "${1}.$(Coproc::Read)"
 
         if [[ "${fn}" == "on_activate" ]]; then
             activate=1
@@ -99,13 +113,18 @@ __bs__add_module_functions()
     fi
 }
 
-__bs__stub_fn()
+##
+# Stubs a module function to prevent it from being called directly.
+#
+# An attempt to call the function will instead call Module::StubDef.
+##
+Module::Stub()
 {
     unset -f "${1}"
-    eval "${1}() { __bs__stub_fn_def; }"
+    eval "${1}() { Module::StubDef; }"
 }
 
-__bs__stub_fn_def()
+Module::StubDef()
 {
     printf "Do not call functions directly. Use their module syntax. AT %s\n" "$(caller 1)" 1>&2
     exit 1
@@ -115,18 +134,23 @@ __bs__stub_fn_def()
 ## Module Hook
 ###############################################################################
 
-activate_module()
+##
+# Hooks the importer for loading modules.
+#
+# See `Import::AddHook` for details.
+##
+Module::Hook()
 {
     local modulePath="${1}"
 
-    if ! __bs__is_module "${modulePath}"; then
+    if ! Module::IsModule "${modulePath}"; then
         return 0
     fi
 
-    __bs__load_module "${modulePath}"
+    Module::Load "${modulePath}"
 
     return 1
 }
 
 import "core/coproc"
-Import::addHook activate_module
+Import::AddHook Module::Hook

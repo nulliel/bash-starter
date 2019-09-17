@@ -4,12 +4,6 @@
 ## Bash Starter
 ###############
 declare -g BOOTSTRAP_DIR && BOOTSTRAP_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)/lib"
-declare -g CACHE_DIR="${BOOTSTRAP_DIR}/.cache"
-
-declare -ag IMPORT_SOURCES=(
-    "${CACHE_DIR}"
-    "https://raw.githubusercontent.com/nulliel/bash-starter/master/lib/modules"
-)
 
 # shellcheck source=lib/bootstrap
 source "${BOOTSTRAP_DIR}/bootstrap"
@@ -17,13 +11,9 @@ source "${BOOTSTRAP_DIR}/bootstrap"
 ##############
 ## Your Script
 ##############
-
-##
-# TODO: Documentation
-##
 main()
 {
-    :
+    return 0
 }
 
 main "$@"

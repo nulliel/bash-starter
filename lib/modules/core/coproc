@@ -2,6 +2,10 @@
 
 declare -gi __bs__is_coproc_open=1
 
+################################################################################
+## Coproc Creation
+################################################################################
+
 ##
 # Creates a coproc.
 #
@@ -14,7 +18,7 @@ declare -gi __bs__is_coproc_open=1
 # If multiple coprocs are opened, an error will be displayed
 # and the process will exit.
 ##
-coproc_open()
+Coproc::Open()
 {
     if [[ "${__bs__is_coproc_open}" -eq 0 ]]; then
         printf "Attempting to open multiple coprocs\n" 1>&2
@@ -31,7 +35,7 @@ coproc_open()
 ##
 # Destroys the active coproc.
 ##
-coproc_close()
+Coproc::Close()
 {
     if [[ "${__bs__is_coproc_open}" -eq 1 ]]; then
         printf "Attempting to kill an inactive coproc\n" 1>&2
@@ -48,6 +52,10 @@ coproc_close()
     __bs__is_coproc_open=1
 }
 
+################################################################################
+## Coproc IO
+################################################################################
+
 ##
 # Reads the buffer of the active coproc.
 #
@@ -55,7 +63,7 @@ coproc_close()
 #
 #   local var="$(__bs__coproc_read)"
 ##
-coproc_read()
+Coproc::Read()
 {
     if [[ "${__bs__is_coproc_open}" -eq 1 ]]; then
         printf "Attempting to read from a closed coproc.\n"
@@ -71,7 +79,7 @@ coproc_read()
 ##
 ## $1 - Command to send to the coproc
 ##
-coproc_send()
+Coproc::Send()
 {
     if [[ "${__bs__is_coproc_open}" -eq 1 ]]; then
         printf "Attempting to send to a closed coproc.\n"
