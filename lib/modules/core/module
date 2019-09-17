@@ -85,10 +85,10 @@ Module::Load()
 ##
 Module::ExtractFunctions()
 {
-    Coproc::Send "declare -F | awk '{print \$3}'"
+    Coproc::Send "declare -F"
 
     declare -a functions=(
-        $(Coproc::Read)
+        $(Coproc::Read | awk '{ print $3 }')
     )
 
     local activate=0
