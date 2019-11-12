@@ -55,6 +55,10 @@ Module::Load()
     Module::ExtractFunctions "$name"
 
     Coproc::Close
+
+    if declare -f "$1.onActivate"; then
+        "${1}.onActivate"
+    fi
 }
 
 ###############################################################################
@@ -102,15 +106,7 @@ Module::ExtractFunctions()
         Coproc::Send "declare -f ${fn}"
 
         eval "${1}.$(Coproc::Read)"
-
-        if [[ "${fn}" == "onActivate" ]]; then
-            activate=1
-        fi
     done
-
-    if [[ "${activate}" -eq 1 ]]; then
-        "${1}".onActivate
-    fi
 }
 
 ##
