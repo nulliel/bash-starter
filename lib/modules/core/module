@@ -56,8 +56,8 @@ Module::Load()
 
     Coproc::Close
 
-    if declare -f "$1.onActivate"; then
-        "${1}.onActivate"
+    if declare -F "${name}.onActivate"; then
+        "${name}.onActivate"
     fi
 }
 
