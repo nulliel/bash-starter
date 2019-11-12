@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 
-##
-# Prevent the script from being executed directly.
-#
-# There is no reason to execute this script directly as
-# it does not do anything on its' own.
-##
-if [[ -z "$0" ]] || [[ "$0" =~ "bash" ]] || [[ "$0" =~ "-bash" ]]; then
-    printf "[\e[1;91mERROR\e[0m] This script should not be executed directly\n" 1>&2
-    return
-fi
-
 ################################################################################
 ## Configs
 ################################################################################
@@ -18,9 +7,6 @@ if [[ -z "${BOOTSTRAP_DIR}" ]]; then
     printf "[\e[1;91mERROR\e[0m] BOOTSTRAP_DIR is not set\n" 1>&2
     exit 1
 fi
-
-declare -g CACHE_DIR="${BOOTSTRAP_DIR}/.cache"
-declare -g BASH_STARTER_VERSION="${BASH_STARTER_VERSION:-master}"
 
 ################################################################################
 ## Debugging
@@ -30,6 +16,15 @@ export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 set -o errexit  # Exit when a command returns a non-zero status code
 set -o nounset  # Exit when an unset variable is used
 set -o pipefail # Exit when a command fails in a pipe. eg. command_will_fail | piped_command
+
+################################################################################
+## Import Aliases
+################################################################################
+shopt -s expand_aliases
+
+alias import="Import::Main"
+alias source="Import::Main"
+alias .="Import::Main"
 
 ################################################################################
 ## Cache
@@ -54,19 +49,10 @@ function Bootstrap::IsCacheEnabled()
 }
 
 ################################################################################
-## Import Aliases
-################################################################################
-shopt -s expand_aliases
-
-alias import="Import::Main"
-alias source="Import::Main"
-alias .="Import::Main"
-
-################################################################################
 ## Import
 ################################################################################
 declare -ag IMPORT_SOURCES=(
-    "https://raw.githubusercontent.com/nulliel/bash-starter/${BASH_STARTER_VERSION}/lib/modules"
+    "https://raw.githubusercontent.com/nulliel/bash-starter/master/lib/modules"
     "${ADDITIONAL_IMPORT_SOURCES[@]}"
 )
 
@@ -74,9 +60,8 @@ declare -a IMPORT_HOOKS=()
 declare -a IMPORTED_FILES=()
 
 if Bootstrap::IsCacheEnabled; then
-    IMPORT_SOURCES=("${CACHE_DIR}" "${IMPORT_SOURCES[@]}")
+    IMPORT_SOURCES=("${BOOTSTRAP_DIR}" "${IMPORT_SOURCES[@]}")
 fi
-
 
 ##
 # Attempts to import a file.
@@ -91,7 +76,7 @@ fi
 Import::Main()
 {
     local package="${1}"
-    local importFile="${CACHE_DIR}/${package}"
+    local importFile="${BOOTSTRAP_DIR}/${package}"
 
     if Import::IsLoaded "${package}"; then
         return 0
@@ -99,6 +84,10 @@ Import::Main()
 
     if ! Bootstrap::IsCacheEnabled; then
         importFile="$(mktemp)"
+    fi
+
+    if [[ "${package}" == "/"* || "${package}" == "./"* ]]; then
+        importFile="${package}"
     fi
 
     Import::System "${package}" || Import::Sources "${package}" "${importFile}"
@@ -347,8 +336,6 @@ Bootstrap::Main()
     ############################################################################
     ## Default Modules
     ############################################################################
-    mkdir -p "${CACHE_DIR}"
-
     import "core/coproc"
     import "core/module"
     # import "core/colors"

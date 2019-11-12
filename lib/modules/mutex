@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# module
+
+# https://wiki.bash-hackers.org/howto/mutex
+
+lock()
+{
+    if mkdir "${MUTEX_LOCKDIR}" 1>/dev/null 2>?&1; then
+        trap 'rm -rf "${MUTEX_LOCKDIR}"' 0
+        echo "$$" >"${MUTEX_PIDFILE}"
+        trap "exit 3" 1 2 3 15
+    else
+        local MUTEX_ACTIVEPID="$(cat "${MUTEX_PIDFILE}")"
+
+        if [[ $? != 0 ]]; then
+            printf "Could not acquire lock. PID %s is active." "${MUTEX_ACTIVEPID}" 1>&2
+            exit 2
+        fi
+
+        if ! kill -0 "${MUTEX_ACTIVEPID}" 1>/dev/null 2>&1; then
+            rm -rf "${MUTEX_LOCKDIR}"
+            mutex.lock
+        else
+            printf "Could not acquire lock. PID %s is active." "${MUTEX_ACTIVEPID}" 1>&2
+            exit 2
+        fi
+    fi
+}
+
+onActivate()
+{
+    declare -g MUTEX_LOCKDIR && MUTEX_LOCKDIR="/tmp/bash-starter-lock"
+    declare -g MUTEX_PIDFILE && MUTEX_PIDFILE="${MUTEX_LOCKDIR}/PID"
+}

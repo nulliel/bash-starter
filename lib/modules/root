@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# module
+
+##
+# Runs a given command
+#
+##
+runAsUser()
+{
+    su -c "$@" "${ORIGINAL_SHELL_USER}"
+}
+
+onActivate()
+{
+    declare -g ORIGINAL_SHELL_USER; ORIGINAL_SHELL_USER="$(whoami)"
+}

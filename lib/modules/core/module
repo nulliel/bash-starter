@@ -103,13 +103,13 @@ Module::ExtractFunctions()
 
         eval "${1}.$(Coproc::Read)"
 
-        if [[ "${fn}" == "on_activate" ]]; then
+        if [[ "${fn}" == "onActivate" ]]; then
             activate=1
         fi
     done
 
     if [[ "${activate}" -eq 1 ]]; then
-        "${1}".on_activate
+        "${1}".onActivate
     fi
 }
 

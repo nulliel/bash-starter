@@ -18,3 +18,8 @@ mkdirSafe()
         }
     fi
 }
+
+onActivate()
+{
+    import "console"
+}
