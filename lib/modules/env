@@ -1,3 +1,33 @@
 #!/usr/bin/env bash
 # module
 
+##
+# Requires that an environment variable be set and
+# that it is not empty.
+#
+# Arguments:
+#
+#   $1 :: The environment variable that must be set
+#   $2 :: (OPTIONAL) An error message to display when
+#         the environment variable is not set
+#
+# Returns:
+#
+#   0      :: On success
+#   EXIT 1 :: On failure
+##
+require()
+{
+    local variableName="$1"
+    local errorMessage="${2:-Missing required environment variable $1}"
+
+    if [[ -z "${!variableName}" ]]; then
+        console.error "${errorMessage}"
+        exit 1
+    fi
+}
+
+onActivate()
+{
+    import console
+}
