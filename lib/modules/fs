@@ -19,6 +19,11 @@ mkdirSafe()
     fi
 }
 
+getAbsolutePath()
+{
+    caller 1
+}
+
 onActivate()
 {
     import "console"
