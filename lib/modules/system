@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# module
+
+requireCommand()
+{
+    local command="$1"
+
+    if ! command -v "${command}" 1>/dev/null 2>&1; then
+        console.error "Command '${command}' is required. Please install it before running this script"
+    fi
+}
+
+onActivate()
+{
+    import console
+    import core/colors
+}
