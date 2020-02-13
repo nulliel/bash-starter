@@ -130,6 +130,8 @@ Import::System()
     if [[ ! -f "${package}" ]]; then
         return 1
     fi
+
+    importFile="${package}"
 }
 
 ##
@@ -338,8 +340,8 @@ Bootstrap::Main()
     ############################################################################
     import "core/coproc"
     import "core/module"
-    # import "core/colors"
 
+    # import "core/colors"
     # import "console"
 
     ############################################################################
