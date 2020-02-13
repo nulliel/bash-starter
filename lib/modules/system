@@ -7,6 +7,7 @@ requireCommand()
 
     if ! command -v "${command}" 1>/dev/null 2>&1; then
         console.error "Command '${command}' is required. Please install it before running this script"
+        exit 1
     fi
 }
 
