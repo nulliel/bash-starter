@@ -13,7 +13,7 @@ lock()
         local MUTEX_ACTIVEPID="$(cat "${MUTEX_PIDFILE}")"
 
         if [[ $? != 0 ]]; then
-            printf "Could not acquire lock. PID %s is active." "${MUTEX_ACTIVEPID}" 1>&2
+            printf "Could not acquire lock. PID %s is active\n" "${MUTEX_ACTIVEPID}" 1>&2
             exit 2
         fi
 
@@ -21,7 +21,7 @@ lock()
             rm -rf "${MUTEX_LOCKDIR}"
             mutex.lock
         else
-            printf "Could not acquire lock. PID %s is active." "${MUTEX_ACTIVEPID}" 1>&2
+            printf "Could not acquire lock. PID %s is active\n" "${MUTEX_ACTIVEPID}" 1>&2
             exit 2
         fi
     fi
