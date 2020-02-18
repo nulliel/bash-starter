@@ -1,4 +1,34 @@
 # bash-starter
+--------------
+
+**Bash Starter** aims to make scripting easier by providing
+a powerful standard library and runtime checking to prevent
+common bash mistakes.
+
+## Table of Contents
+
+- [Installation](#installation)
+  - [Supported Bash Versions](#supported-bash-versions)
+
+## Installation
+
+### Supported Bash Versions
+
+**Bash Starter** has been tested on and supports the following platforms:
+
+- **Bash Versions**
+    - >= 4.3 due to the use of namerefs
+
+- **Platforms**
+    - Arch Linux
+    - OSX
+
+
+
+
+
+
+
 
 # Caveats
 
