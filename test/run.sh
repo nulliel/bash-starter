@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-if ! command -v bats >/dev/null 2>&1; then
-    printf "Please install 'bats' to run bash tests\n" 1>&2
+if ! command -v docker >/dev/null 2>&1; then
+    printf "Please install 'docker' to run bash tests\n" 1>&2
     exit 1
 fi
 
-bats ./test # ./test/**/*
+docker run -it -v "$(pwd):/app" bats/bats:latest /app/test

@@ -1,55 +1,48 @@
 #!/usr/bin/env bash
 
-declare -gi __bs__is_coproc_open=1
+declare -gi Coproc__IsOpen=1
 
-################################################################################
-## Coproc Creation
-################################################################################
-
+## Creates a coproc
 ##
-# Creates a coproc.
-#
-# The coproc immediately runs bash to start an interactive
-# session which will leave the coproc open to be sent commands.
-#
-# Multi-coprocs are still an experimental feature
-# in bash 4.X and will be disallowed in this library.
-#
-# If multiple coprocs are opened, an error will be displayed
-# and the process will exit.
+## The coproc will immediately run bash to start an
+## interactive session which will leave it open to
+## accept commands.
+##
+## Multi-coprocs are still an experimental feature
+## in bash 4.X and will be disallowed.
+##
+## If multiple coprocs are opened, an error will be
+## displayed and the process will exit.
 ##
 Coproc::Open()
 {
-    if [[ "${__bs__is_coproc_open}" -eq 0 ]]; then
-        printf "Attempting to open multiple coprocs\n" 1>&2
-        exit 1
+    if [[ "${Coproc__IsOpen}" -eq 0 ]]; then
+        Coproc::Error "Attempting to open multiple coprocs"
     fi
 
-    coproc __bs__coproc {
+    coproc Coproc__Coproc {
         bash
     }
 
-    __bs__is_coproc_open=0
+    Coproc__IsOpen=0
 }
 
-##
-# Destroys the active coproc.
+## Destroys the active coproc
 ##
 Coproc::Close()
 {
-    if [[ "${__bs__is_coproc_open}" -eq 1 ]]; then
-        printf "Attempting to kill an inactive coproc\n" 1>&2
-        exit 1
+    if [[ "${Coproc__IsOpen}" -eq 1 ]]; then
+        Coproc::Error "Attempting to kill an inactive coproc"
     fi
 
     # Close the coproc file descriptor
-    eval "exec ${__bs__coproc[1]}>&-"
+    eval "exec ${Coproc__Coproc[1]}>&-"
 
     # Wait for the coproc process to close
     # shellcheck disable=SC2154
-    wait "${__bs__coproc_PID}"
+    wait "${Coproc__Coproc_PID}"
 
-    __bs__is_coproc_open=1
+    Coproc__IsOpen=1
 }
 
 ################################################################################
@@ -87,4 +80,14 @@ Coproc::Send()
     fi
 
     printf "%s\n" "${1}" >&"${__bs__coproc[1]}"
+}
+
+Coproc::Error()
+{
+    printf "%s %s\n"              \
+           "[\e[1;91mERROR\e[0m]" \
+           "${1}"                 \
+           1>&2
+
+    exit 1
 }

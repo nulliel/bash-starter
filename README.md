@@ -1,14 +1,58 @@
-# bash-starter
---------------
+<p align="center">
+    <h1>Bash Starter</h1>
+</p>
 
-**Bash Starter** aims to make scripting easier by providing
-a powerful standard library and runtime checking to prevent
-common bash mistakes.
+<p align="center">Making scripting easier by providing a powerful standard library and runtime checks to prevent common bash mistakes.</p>
+
+<p align="center">
+
+</p>
 
 ## Table of Contents
 
+- [How it Works](#how-it-works)
+    - [Module Loading](#module-loading)
 - [Installation](#installation)
-  - [Supported Bash Versions](#supported-bash-versions)
+    - [Supported Bash Versions](#supported-bash-versions)
+    - [Curl](#curl)
+    - [Targeted Versions](#targeted-versions)
+- [Usage](#usage)
+    - [Configuration](#configuration)
+    - [Remote Sources](#remote-sources)
+
+## How it Works
+
+**Bash Starter** makes use of a single file ([your_script.sh](/your_script.sh))
+for configuration and initial bootstrapping of the library
+
+## Module Loading
+
+The core feature of this project is its module loading system. A module is a normal
+bash file that can be imported from a [remote source](#remote-sources). This allows
+a project to only pull in the modules it needs as a remote may house a large number
+of modules.
+
+
+
+
+
+
+
+
+These files are cached locally and
+should be committed.
+
+This allows multi
+
+
+
+
+The core feature of this project is its module loading system. A module is a normal
+bash file that will be analyzed
+
+
+
+
 
 ## Installation
 
@@ -17,11 +61,21 @@ common bash mistakes.
 **Bash Starter** has been tested on and supports the following platforms:
 
 - **Bash Versions**
-    - >= 4.3 due to the use of namerefs
+    - \>= 4.3 due to the use of namerefs
 
 - **Platforms**
     - Arch Linux
     - OSX
+
+### Curl
+
+Pulling **Bash Starter** into a project is extremely easy using `curl`.
+
+```bash
+curl -o script_name https://raw.githubusercontent.com/sribich/bash-starter/master/your_script.sh
+```
+
+### Targeted Versions
 
 
 
