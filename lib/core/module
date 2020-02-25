@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+##
+##
+##
+##
+
 ################################################################################
 ## Module Loading
 ################################################################################
@@ -69,7 +74,8 @@ Module::IsExtension()
     readarray -d " " -t parts <<< "${line}"
 
     if [[ "${#parts[@]}" -ne 4 || "${parts[2]}" != "extends" ]]; then
-        return 1
+        printf "Incorrect module extension declaration '${line}'\n" 1>&2
+        exit 1
     fi
 
     printf "%s" "${parts[3]}"
@@ -105,7 +111,7 @@ Module::Load()
         exit 1
     fi
 
-     local extension; extension="$(Module::IsExtension "${path}")" && {
+    local extension; extension="$(Module::IsExtension "${path}")" && {
         if ! Module::IsLoaded "${extension}"; then
             printf "Module %s must be loaded to import extension module %s" \
                    "${extension}"                                           \
@@ -115,8 +121,11 @@ Module::Load()
         fi
     }
 
+    echo "hi"
     Coproc::Open
+    echo "hi"
     Coproc::Send "source '${path}'"
+    echo "hi"
     Coproc::Read
 
     Module::Verify "${name}"
@@ -126,29 +135,47 @@ Module::Load()
 
     if declare -F "${name}::Initialize" 1>/dev/null 2>&1; then
         "${name}::Initialize"
-        unset -f "${name}::Initialize"
+        unset "${name}::Initialize"
     fi
 }
 
 Module::Verify()
 {
-   # Coproc::Send "declare -F"
+    # Coproc::Send "declare -F"
     # Coproc::Read
 
-    return 0
+    exit 1
 }
 
+################################################################################
+## Module System
+##################################################################################
+
+
+
+
+
+
+################################################################################
+## Module System
+################################################################################
+
+##
+##
 Module::Initialize()
 {
-    declare -Ag BASH_STARTER_LOADED_MODULES=()
+    declare -ag BASH_STARTER_LOADED_MODULES=()
 
     Module::IsLoaded()
     {
         local moduleName="${1}"
 
+        set +u
         if [[ "${BASH_STARTER_LOADED_MODULES[${moduleName}]:-1}" -eq 0 ]]; then
+            set -u
             return 0
         fi
+        set -u
 
         return 1
     }
@@ -161,6 +188,19 @@ Module::Initialize()
     }
 }
 
+
+
+
+
+
+##
+## Module System
+################
+
+
+## Adds a hook to the importer for loading modules
+##
+##
 Module::Hook()
 {
     local modulePath="${1}"
@@ -177,6 +217,56 @@ Module::Hook()
 import "core/coproc"
 Import::AddHook Module::Hook
 Module::Initialize
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+## Module Loading
+###############################################################################
+
+##
+# Arguments:
+#
+#   $1 :: The path of the file to load
+##
+Module::Loade()
+{
+    local name;
+
+    # The module name is the file name minus any extension
+    name="$(basename "${1}")"
+    name="${name%%.*}"
+
+    Coproc::Open
+    Coproc::Send "source '${1}'"
+    Coproc::Read
+
+    Module::ExtractFunctions "$name"
+
+    Coproc::Close
+
+    if declare -F "${name}.onActivate" 1>/dev/null 2>&1; then
+        "${name}.onActivate"
+    fi
+}
+
+###############################################################################
+## Module Creation
+###############################################################################
 
 ##
 # Given an active coproc session, extracts all given functions

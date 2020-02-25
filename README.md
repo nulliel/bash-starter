@@ -14,47 +14,27 @@
     - [Module Loading](#module-loading)
 - [Installation](#installation)
     - [Supported Bash Versions](#supported-bash-versions)
-    - [Curl](#curl)
-    - [Targeted Versions](#targeted-versions)
 - [Usage](#usage)
     - [Configuration](#configuration)
     - [Remote Sources](#remote-sources)
 
 ## How it Works
 
-**Bash Starter** makes use of a single file ([your_script.sh](/your_script.sh))
-for configuration and initial bootstrapping of the library
+**Bash Starter** makes use of a [single file](/your_script.sh) for configuration
+and initial module bootstrapping.
 
-## Module Loading
+### Module Loading
 
-The core feature of this project is its module loading system. A module is a normal
-bash file that can be imported from a [remote source](#remote-sources). This allows
-a project to only pull in the modules it needs as a remote may house a large number
-of modules.
-
-
-
-
-
-
-
-
-These files are cached locally and
-should be committed.
-
-This allows multi
-
-
-
-
-The core feature of this project is its module loading system. A module is a normal
-bash file that will be analyzed
-
-
-
-
+The core feature of this project is its module loading system. Modules are normal
+bash files imported from [remote sources](#remote-sources).
 
 ## Installation
+
+Pulling **Bash Starter** into a project is extremely easy using `curl`:
+
+```bash
+curl -o script_name https://raw.githubusercontent.com/sribich/bash-starter/master/your_script.sh
+```
 
 ### Supported Bash Versions
 
@@ -67,15 +47,11 @@ bash file that will be analyzed
     - Arch Linux
     - OSX
 
-### Curl
+## Usage
 
-Pulling **Bash Starter** into a project is extremely easy using `curl`.
+### Configuration
 
-```bash
-curl -o script_name https://raw.githubusercontent.com/sribich/bash-starter/master/your_script.sh
-```
-
-### Targeted Versions
+### Remote Sources
 
 
 
@@ -84,21 +60,8 @@ curl -o script_name https://raw.githubusercontent.com/sribich/bash-starter/maste
 
 
 
-# Caveats
 
-* Global variables in modules are not currently supported.
 
-# Getting Started
-
-`curl -fsSL https://github.com/nulliel/bash-starter/releases/download/1.0.0/bash-starter-v1.0.0.tar.gz | tar -zx`
-
-# Configuration
-
-As outlined in the `your_script.sh` script, **BOOTSTRAP_DIR** is the
-only required variable that be set. This folder should contain the
-`bootstrap` file and will be used for any caching.
-
-The following configurations are available:
 
 ### BASH_STARTER_VERSION
 

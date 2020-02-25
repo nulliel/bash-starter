@@ -1,0 +1,244 @@
+#!/usr/bin/env bash
+# module
+
+Exception::Initialize()
+{
+    import ui
+    import console
+
+    trap "__EXCEPTION_TYPE__=\"\$_\" Exception::Handle \$? \$BASH_COMMAND" ERR
+    set -o errtrace
+
+    throw()
+    {
+        __SKIP_TRACES__=5 __EXCEPTION_TYPE__="$*" Exception::Handle 1
+    }
+}
+
+Exception::Handle()
+{
+    local exitCode="${1:-1}"; shift || :
+    local type="${__EXCEPTION_TYPE__:-"Undefined command"}"
+    local undefinedObject="$*"
+
+    local script="${BASH_SOURCE[1]#./}"
+    local lineNo="${BASH_LINENO[0]}"
+
+    if [[ -z "${undefinedObject:-}" ]]; then
+        undefinedObject="$type"
+    fi
+
+    ## TODO: Make this configurable
+    if [[ "${BASH_SUBSHELL}" -ge 25 ]]; then
+        echo "ERROR: Call stack exceeded (25)"
+        Exception::ContinueOrBreak || exit 1
+    fi
+
+    local -a exception=("$lineNo" "$undefinedObject" "$script")
+
+    Exception::GetStacktrace "${__SKIP_TRACES__:-3}"
+
+    Console::RawError
+    Console::RawError " $(UI.Color.Red)$(UI.Powerline.Fail) $(UI.Color.Bold)UNCAUGHT EXCEPTION: $(UI.Color.LightRed)${type} $(UI.Color.Yellow)$(UI.Color.Italics)(${exitCode})$(UI.Color.Default)"
+
+    Exception::Print "${exception[@]}"
+
+    Exception::ContinueOrBreak
+}
+
+Exception::Print()
+{
+  #    [...rest] exception
+  local -a exception=("$@")
+
+  local -i backtraceIndentationLevel=${backtraceIndentationLevel:-0}
+
+  local -i counter=0
+  local -i backtraceNo=0
+
+  local -a backtraceLine
+  local -a backtraceCommand
+  local -a backtraceFile
+
+  #for traceElement in Exception::GetLastException
+  while [[ $counter -lt ${#exception[@]} ]]
+  do
+      backtraceLine[$backtraceNo]="${exception[$counter]}"
+    counter+=1
+    backtraceCommand[$backtraceNo]="${exception[$counter]}"
+    counter+=1
+    backtraceFile[$backtraceNo]="${exception[$counter]}"
+    counter+=1
+
+    backtraceNo+=1
+  done
+
+  local -i index=1
+
+  while [[ $index -lt $backtraceNo ]]
+  do
+    Console::RawError "$(Exception::FormatExceptionSegment "${backtraceFile[$index]}" "${backtraceLine[$index]}" "${backtraceCommand[($index - 1)]}" $(( $index + $backtraceIndentationLevel )) )"
+    index+=1
+  done
+}
+
+Exception::CanHighlight() {
+  #    [string] errLine
+  #    [string] stringToMark
+  local errLine="$1"
+  local stringToMark="$2"
+
+  local stringToMarkWithoutSlash="$(String::ReplaceSlashes "$stringToMark")"
+  errLine="$(String::ReplaceSlashes "$errLine")"
+
+  if [[ "$errLine" == *"$stringToMarkWithoutSlash"* ]]
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+String::GetSpaces() {
+  local howMany="$1"
+
+  if [[ "$howMany" -gt 0 ]]
+  then
+    ( printf "%*s" "$howMany" )
+  fi
+}
+
+String::ReplaceSlashes() {
+  local stringToMark="$1"
+
+  # Workaround for a Bash bug that causes string replacement to fail when a \ is in the string
+  local slash="\\"
+  local slashReplacement='_%SLASH%_'
+  echo "${stringToMark/$slash$slash/$slashReplacement}"
+}
+
+String::RestoreSlashes() {
+  local stringToMark="$1"
+
+  # Workaround for a Bash bug that causes string replacement to fail when a \ is in the string
+  local slash="\\"
+  local slashReplacement='_%SLASH%_'
+  echo "${stringToMark/$slashReplacement/$slash}"
+}
+
+Exception::HighlightPart() {
+  #    [string] errLine
+  #    [string] stringToMark
+  local errLine="$1"
+  local stringToMark="$2"
+
+  # Workaround for a Bash bug that causes string replacement to fail when a \ is in the string
+  local stringToMarkWithoutSlash="$(String::ReplaceSlashes "$stringToMark")"
+  errLine="$(String::ReplaceSlashes "$errLine")"
+
+  local underlinedObject="$(Exception::GetUnderlinedPart "$stringToMark")"
+  local underlinedObjectInLine="${errLine/$stringToMarkWithoutSlash/$underlinedObject}"
+
+  # Bring back the slash:
+  underlinedObjectInLine="$(String::RestoreSlashes "$underlinedObjectInLine")"
+
+  # Trimming:
+  underlinedObjectInLine="${underlinedObjectInLine#"${underlinedObjectInLine%%[![:space:]]*}"}" # "
+
+  echo "$underlinedObjectInLine"
+}
+
+Exception::GetUnderlinedPart() {
+  #    [string] stringToMark
+  local stringToMark="$1"
+
+  echo "$(UI.Color.LightGreen)$(UI.Powerline.RefersTo) $(UI.Color.Magenta)$(UI.Color.Underline)$stringToMark$(UI.Color.White)$(UI.Color.NoUnderline)"
+}
+
+Exception::FormatExceptionSegment() {
+  local script="$1"
+  local -i lineNo="$2"
+  local stringToMark="$3"
+  local -i callPosition="${4:-1}"
+  #    [string] script
+  #    [integer] lineNo
+  #    [string] stringToMark
+  #    [integer] callPosition=1
+
+  local errLine="$(sed "${lineNo}q;d" "$script")"
+  local originalErrLine="$errLine"
+
+  local -i linesTried=0
+
+  ## TODO: when line ends with slash \ it is a multiline statement
+  ## TODO: when eval or alias
+  # In case it's a multiline eval, sometimes bash gives a line that's offset by a few
+  while [[ $linesTried -lt 5 && $lineNo -gt 0 ]] && ! Exception::CanHighlight "$errLine" "$stringToMark"
+  do
+    linesTried+=1
+    lineNo+=-1
+    errLine="$(sed "${lineNo}q;d" "$script")"
+  done
+
+  # Cut out the path, leave the script name
+  script="${script##*/}"
+
+  local prefix="   $(UI.Powerline.Branch)$(String::GetSpaces $(($callPosition * 3 - 3)) || true) "
+
+  if [[ $linesTried -ge 5 ]]
+  then
+    # PRINT THE ORGINAL OBJECT AND ORIGINAL LINE #
+    #local underlinedObject="$(Exception::HighlightPart "$errLine" "$stringToMark")"
+    local underlinedObject="$(Exception::GetUnderlinedPart "$stringToMark")"
+    echo "${prefix}$(UI.Color.White)${underlinedObject}$(UI.Color.Default) [$(UI.Color.Blue)${script}:${lineNo}$(UI.Color.Default)]"
+    prefix="$prefix$(UI.Powerline.Fail) "
+    errLine="$originalErrLine"
+  fi
+
+  local underlinedObjectInLine="$(Exception::HighlightPart "$errLine" "$stringToMark")"
+
+  echo "${prefix}$(UI.Color.White)${underlinedObjectInLine}$(UI.Color.Default) [$(UI.Color.Blue)${script}:${lineNo}$(UI.Color.Default)]"
+}
+
+
+Exception::ContinueOrBreak()
+{
+    if [[ -t 1 ]]; then
+        trap "stty sane; exit 1" INT
+
+        Console::RawError
+        Console::RawError " $(UI.Color.Yellow)$(UI.Powerline.Lightning)$(UI.Color.White) Press $(UI.Color.Bold)[CTRL+C]$(UI.Color.White) to exit or $(UI.Color.Bold)[Return]$(UI.Color.White) to continue execution."
+        read -s
+        Console::RawError "$(UI.Color.Blue)$(UI.Powerline.Cog)$(UI.Color.White)  Continuing...$(UI.Color.Default)"
+
+        return 0
+    fi
+
+    Console::RawError
+    exit 1
+}
+
+Exception::GetStacktrace()
+{
+    for traceElement in $(Exception::GetStacktrace_ $1); do
+        exception+=("$traceElement")
+    done
+}
+
+Exception::GetStacktrace_()
+{
+    local -i startFrom="${1:-1}"
+    local -i i=0
+
+    while caller $i >/dev/null; do
+        if (( $i + i >= $startFrom )); then
+            local -a trace=( $(caller $i) )
+
+            echo "${trace[0]}"
+            echo "${trace[1]}"
+            echo "${trace[@]:2}"
+        fi
+
+        i+=1
+    done
+}

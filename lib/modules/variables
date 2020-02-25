@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# module
+
+################################################################################
+## Module Variables
+################################################################################
+Variable::Get()
+{
+    Variable::Get type
+}
+
+Variable::Set()
+{
+    :
+}
+
+Variable::Getp()
+{
+    :
+}
+
+Variable::Setp()
+{
+    :
+}
+
+################################################################################
+##
+################################################################################
+Variable::NamedArgument()
+{
+    echo "."
+    echo "$*"
+}
+
+Variable::CaptureModifiers()
+{
+    :
+}
+
+
+
+trap "Variable::NamedArgument \$BASH_COMMAND" DEBUG
+
+Variable::Set "a" "b" "c"
+
+alias string.="Variable::TrapAssignLocal"
+
+
+'Variable::InTrapCaptureParameters; local -i __assign_normalCodeStarted=0; trap "declare -i __assign_paramNo; Variable::TrapAssignNumberedParameter \"\$BASH_COMMAND\" \"\$@\"; [[ \$__assign_normalCodeStarted -ge 2 ]] && trap - DEBUG && unset __assign_varType __assign_varName __assign_varValue __assign_paramNo __assign_valueRequired __assign_valueReadOnly __assign_valueGlobal __assign_noHandle" DEBUG; true; true; '
+
+
+
+
+
+shopt -s expand_aliases
+alias Variable::TrapAssign='Variable::CaptureModifiers; local -i __assign_normalCodeStarted=0; trap "declare -i __assign_paramNo; Variable::NamedArgument \"\$BASH_COMMAND\" \"\$@\"; [[ \$__assign_normalCodeStarted -ge 2 ]] && trap - DEBUG && unset __assign_varType __assign_varName __assign_varValue __assign_paramNo __assign_valueRequired __assign_valueReadOnly __assign_valueGlobal __assign_noHandle" DEBUG; true; true; '
+alias Variable::TrapAssignLocal='Variable::TrapAssign local ${__assign_parameters}'
+
+
+
+
+
+alias string.="_type=string Variable::TrapAssignLocal"
+alias string!="_required=true string."
+
+a()
+{
+    string. foo
+    string! bar
+}
+
+a
+trap - DEBUG
+exit 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Variable::InTrapCaptureParameters
+
+local -i __assign_normalCodeStarted=0
+
+trap ""
+declare -i __assign_paramNo;
+Variable::TrapAssignNumberedParameter "$BASH_COMMAND" "$@"
+
+[[ $__assign_normalCodeStarted -ge 2 ]] \
+    && trap - DEBUG \
+    && unset __assign_varType __assign_varName __assign_varValue __assign_paramNo __assign_valueRequired __assign_valueReadOnly __assign_valueGlobal __assign_noHandle
+
+Variable::InTrapCaptureParameters
+
+alias Variable::TrapAssignLocal=""
+alias .string="_type=string Variable::TrapAssignLocal"

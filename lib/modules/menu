@@ -1,16 +1,174 @@
 #!/usr/bin/env bash
 # module
 
+## Menu API:
+##
+##
+## Menu Internals:
+##
+##     Data:
+##         Menu::Create
+##             __BS__MENUS=(
+##                 [menuName] => "__BS__MENU_menuName"
+##             )
+##         Menu::Item
+##             __BS__MENU_menuName=(
+##                 [init] => ""
+##                 [0]    => "__BS__MENU_menuName_0"
+##             )
+##
+##
+##        __BS__MENU_menuNama_0=(
+##            [description] => ""
+##            [function]    => ""
+##            [lens]        => ""
+##        )
+##
+
+##
+##
+##
+Menu::Initialize()
+{
+    declare -Ag __BS__MENUS=()
+}
+
+##
+##
+##
+Menu::Create()
+{
+    string! menuName
+
+    if [[ -n "${__BS__MENUS[${menuName}]:-}" ]]; then
+        throw "Attempted to create duplicate menu '${menuName}'"
+        exit 1
+    fi
+
+    __BS__MENUS["${menuName}"]="__BS__MENUS_${menuName}"
+}
+
+## Adds an item to the menu
+##
+## Arguments:
+##
+##   $1 (menuName) :: The menu to modify
+##   $2 (itemName) :: The item name to display
+##
+##   OPTIONAL
+##   $3 (itemView) :: A reference to a variable containing data to show
+##
+Menu::Item()
+{
+    string! menuName
+    string! itemName
+    string! itemFunc
+    string. itemView
+
+    declare -n menu="$(Menu::GetMenu "${menuName}")"
 
 
 
+    menu+=("$itemName" "$itemFunc" "${itemView:--}")
+}
+
+Menu::Run()
+{
+    string! menuName
+
+    declare -n menu="${__BS__MENUS[${menuName}]}"
+
+    local length="${#menu[@]}"
+    local items=()
+
+    local init=""
+
+    length=$(( length / 3 - 1 ))
+
+    local i=0
+
+    while :; do
+        for i in $(seq 1 "${length}"); do
+            local arr=("${menu[$(( (i - 1) * 3 ))]}")
+
+            printf " %i) %s\n" "${i}" "${arr[0]}"
+        done
+        exit
+    done
+}
 
 
 
+run_()
+{
+    local length="${#}"
+    local items=()
+
+    local init=""
+
+    if [[ $((length % 3)) -ne 0 ]]; then
+        init="$1"
+        shift
+        length=$(( length - 1 ))
+    fi
+
+    length=$((length / 3))
+
+    i=0
+    while [[ "${#}" -ne 0 ]]; do
+        varname="menu_${i}_${RANDOM}"
+
+        items["${i}"]="$varname"
+
+        eval "local ${varname}=('${1}' '${2}' '${3}' '0')"
+
+        i=$((i + 1))
+        shift
+        shift
+        shift
+    done
+
+    while :; do
+        if [[ -n "$init" ]]; then
+            "$init"
+        fi
+
+        for i in $(seq 1 "${length}"); do
+            local arr="${items[$(( i - 1 ))]}"
+            declare -n list="$arr"
 
 
+            printf " %i) %s\n" "${i}" "$(menu.item "${list[3]}" "${list[0]}" "${!list[1]}")"
+        done
 
+        printf " d) done\n"
 
+        local option
+        read -r -p "Enter your selection: " option
+
+        case "${option}" in
+            d)
+                return
+                ;;
+            *)
+                if [[ "${option}" -gt length ]] || [[ "${option}" -le 0 ]]; then
+                    invalid_option
+                fi
+
+                local arr="${items[$(( option - 1 ))]}"
+                declare -n list="$arr"
+
+                "${list[2]}"
+
+                if [[ "$?" -ne 0 ]]; then
+                    exit 1
+                fi
+
+                list[3]=1
+        esac
+
+    done
+}
 
 run()
 {
@@ -119,4 +277,38 @@ item()
            "${2}"             \
            "${FONT_RESET}"    \
            "${state}"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Menu::GetMenu()
+{
+    string! menuName
+
+    if [[ -z "${__BS__MENUS[${menuName}]:-}" ]]; then
+        throw "Menu '${menuName}' does not exist"
+        exit 1
+    fi
+
+    printf "%s" "${__BS__MENUS[${menuName}]}"
+}
+
+Menu::InitStub()
+{
+    :
 }

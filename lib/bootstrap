@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
 ################################################################################
-## Configs
+## bootstrap
+##
+## The functions defined within this file are intended to
+## only be used internally.
 ################################################################################
-if [[ -z "${BOOTSTRAP_DIR}" ]]; then
-    printf "[\e[1;91mERROR\e[0m] BOOTSTRAP_DIR is not set\n" 1>&2
-    exit 1
-fi
 
 ################################################################################
 ## Debugging
@@ -24,7 +23,7 @@ shopt -s expand_aliases
 
 alias import="Import::Main"
 alias source="Import::Main"
-alias .="Import::Main"
+alias      .="Import::Main"
 
 ################################################################################
 ## Cache
@@ -32,16 +31,19 @@ alias .="Import::Main"
 
 ## Returns whether the cache is enabled
 ##
-## The cache is enabled by default but can be disabled
+## The cache is enabled by default, but can be disabled
 ## by setting the `DISABLE_CACHE' environment variable
-## to any value.
+## to _any_ value.
+##
+## This is useful for testing new remote packages before
+## pulling them into a project.
 ##
 ## Returns:
 ##
-##   0 :: The cache is enabled
-##   1 :: The cache is disabled
+##    0 :: The cache is enabled
+##    1 :: The cache is disabled
 ##
-function Bootstrap::IsCacheEnabled()
+Import::IsCacheEnabled()
 {
     if [[ -n "${DISABLE_CACHE:-}" ]]; then
         return 1
@@ -54,7 +56,7 @@ function Bootstrap::IsCacheEnabled()
 declare -a BASH_STARTER_IMPORT_HOOKS=()
 declare -a BASH_STARTER_IMPORTED_FILES=()
 
-if Bootstrap::IsCacheEnabled; then
+if Import::IsCacheEnabled; then
     BASH_STARTER_IMPORT_SOURCES=(
         "${BOOTSTRAP_DIR}"
         "${BASH_STARTER_IMPORT_SOURCES[@]}"
@@ -63,19 +65,10 @@ fi
 
 ## Attempts to import a file
 ##
-## If any hook returns a non-zero status code, the
-## module will not be imported.
-##
-## Arguments:
-##
-##   $1 :: The package to import
-##
 Import::Main()
 {
     if [[ -z "${1+x}" ]]; then
-        printf "%s Import::Main expects 1 argument\n" \
-               "[\e[1;91mERROR\e[0m]"                 \
-               1>&2
+        printf "Import::Main expects 1 argument\n" 1>&2
         exit 1
     fi
 
@@ -86,12 +79,8 @@ Import::Main()
         return 0
     fi
 
-    if ! Bootstrap::IsCacheEnabled; then
+    if ! Import::IsCacheEnabled; then
         importFile="$(mktemp)"
-    fi
-
-    if [[ "${package}" == "/"* || "${package}" == "./"* ]]; then
-        importFile="${package}"
     fi
 
     Import::System "${package}" || Import::Sources "${package}" "${importFile}"
@@ -199,6 +188,7 @@ Import::HTTP()
     if command -v curl 1>/dev/null 2>&1; then
         curl --fail -sL --retry 3 -H "Cache-Control: no-cache" -o "${outFile}" "${source}/${package}" || return 1
     else
+        echo "hie"
         wget -t 3 -O - -o "${outFile}" "${source}/${package}" || return 1
     fi
 }
@@ -264,7 +254,7 @@ Import::RunHooks()
     return 0
 }
 
-## Returns whether an import has already been loaded.
+## Checks whether an import has already been loaded
 ##
 ## Arguments:
 ##
@@ -279,7 +269,7 @@ Import::IsLoaded()
 {
     local package="${1}"
 
-    for file in "${IMPORTED_FILES[@]}"; do
+    for file in "${BASH_STARTER_IMPORTED_FILES[@]}"; do
         if [[ "${file}" == "${package}" ]]; then
             return 0
         fi
@@ -293,7 +283,6 @@ Import::IsLoaded()
 ##
 
 ## https://github.com/mkropat/sh-realpath
-##
 ##
 realpath()
 {
@@ -360,69 +349,67 @@ realpath()
 ## Bootstrap
 ################################################################################
 
-## Ensures that **Bash Starter** is only loaded once
+## Called before Bootstrap::Main to ensure that this file is
+## only loaded once
 ##
-## Multiple attempts to load the library will result in an
-## error and the script will exit.
-##
-Bootstrap::Load()
-{
-    if [[ "${BASH_STARTER_BOOTSTRAPPED:-1}" -eq 0 ]]; then
-        printf "%s Attempted to bootstrap multiple times\n" \
-               "[\e[1;91mERROR\e[0m]"                       \
-               1>&2
-        exit 1
-    fi
-
-    readonly BASH_STARTER_BOOTSTRAPPED=0
-}
-
-## Turns a path containing symbolic links and directory
-## operators into an absolute path to the real file.
-##
-## Note: greadlink is an osx command
+## Sourcing this file multiple times from the same script will
+## result in an error and exit. This does not affect other
+## independent scripts.
 ##
 ## Arguments:
 ##
-##   $1 :: The path to resolve
+##     void
 ##
-## Returns:
+## Return:
 ##
-##   PRINT :: The real path of the provided path
+##     void
 ##
 ## Exits:
 ##
-##  1 :: When missing a required argument
+##     1 :: When this file has already been loaded
+##
+Bootstrap::Load()
+{
+    if [[ "${BASH_STARTER[LOADED]:-1}" -eq 0 ]]; then
+        printf "Attempted to bootstrap multiple times\n" 1>&2
+        exit 1
+    fi
+
+    BASH_STARTER[LOADED]=0
+}
+
+## Uses a portable `realpath' bash implementation to expand
+## all links and resolve references to '.', '..', and extra
+## '/' characters in the string provided by '$1' to produce
+## a canonicalized absolute filename.
+##
+## Arguments:
+##
+##     $1 :: The path to resolve
+##
+## Returns:
+##
+##     PRINT :: The canonicalized absolute filename
+##
+## Exits:
+##
+##    1 :: When missing $1
 ##
 Bootstrap::ResolvePath()
 {
     if [[ -z "${1+x}" ]]; then
-        printf "%s Bootstrap::ResolvePath expects 1 argument\n" \
-               "[\e[1;91mERROR\e[0m]"                           \
-               1>&2
+        printf "Bootstrap::ResolvePath expects 1 argument\n" 1>&2
         exit 1
     fi
 
     realpath "${1}"
 }
 
-## Bootstraps Bash Starter by loading the core modules
-## necessary for generic module loading
+## Sets the scripts' directory references and loads the
+## default modules
 ##
 Bootstrap::Main()
 {
-    Bootstrap::Load
-
-    ############################################################################
-    ## Default Modules
-    ############################################################################
-    import "core/coproc"
-    import "core/module"
-
-    for module in "${BASH_STARTER_DEFAULT_MODULES[@]}"; do
-        import "${module}"
-    done
-
     ############################################################################
     ## Paths
     ############################################################################
@@ -443,6 +430,16 @@ Bootstrap::Main()
 
     readonly SCRIPT_ROOT
     readonly SCRIPT_SELF
+
+    ############################################################################
+    ## Default Modules
+    ############################################################################
+    import "core/module"
+
+    for module in "${BASH_STARTER_DEFAULT_MODULES[@]}"; do
+        import "${module}"
+    done
 }
 
+Bootstrap::Load
 Bootstrap::Main "$@"

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# module
+
+################################################################################
+##
+################################################################################
+Param::NamedArgument()
+{
+    local commandWithArgs=( $1 )
+    local command="${commandWithArgs[0]}"
+
+    if [[ -n "${__param_last:-}" ]]; then
+        if [[ -z "${!__param_no:-}" && "${__param_required:-}" == "true" ]]; then
+            printf "Err\n" 1>&2
+            exit 1
+        fi
+
+        eval "${__param_last}=\"\${$__param_no:-}\""
+        unset __param_last
+    fi
+
+    if [[ "${command}" == "__param=0" ]]; then
+        __param_last="${commandWithArgs[2]}"
+
+        [[ -z "${__param_no:-}" ]] && __param_no+=1
+        __param_no+=1
+    else
+        trap - DEBUG
+    fi
+
+    unset __param
+}
+
+################################################################################
+## Aliases
+################################################################################
+alias Param::Assign='local __param_last; local -i __param_no; trap "__required=${__param_required:-false} Param::NamedArgument \"\$BASH_COMMAND\" \"\$@\"" DEBUG;'
+alias Param::Exit='trap - DEBUG'
+
+alias string.='local __param_type=string; local __param_required=false; Param::Assign __param=0 local '
+alias string!='local __param_type=string; local __param_required=true;  Param::Assign __param=0 local '

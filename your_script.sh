@@ -19,8 +19,6 @@ declare -Ag BASH_STARTER=(
     [VERSION]="master"
     [LIB_DIR]="lib"
 
-    [MODULE_REVIEW]="yes"
-
     ## Do not change any variables past this in the BASH_STARTER
     ## array unless you know what you are doing
     [GIT_URL]="https://raw.githubusercontent.com/sribich/bash-starter"
@@ -67,6 +65,8 @@ source "${BOOTSTRAP_DIR}/bootstrap"
 ##############
 main()
 {
+    import core/colors
+
     return 0
 }
 
