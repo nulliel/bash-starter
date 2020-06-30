@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # module
 
-requireCommand()
+System::Require()
 {
-    local command="$1"
+    string! command
 
     if ! command -v "${command}" 1>/dev/null 2>&1; then
         console.error "Command '${command}' is required. Please install it before running this script"
@@ -11,8 +11,8 @@ requireCommand()
     fi
 }
 
-onActivate()
+System::Initialize()
 {
     import console
-    import core/colors
+    import param
 }
