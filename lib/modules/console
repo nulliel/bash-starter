@@ -19,7 +19,7 @@ Console::RawError()
 ##
 ##   $1 :: Text to print
 ##
-Console::IOnfo()
+Console::Info()
 {
     string! message
 

@@ -51,7 +51,7 @@ Commander::Command()
 Commander::Help()
 {
     Console::Info "Usage: $(basename "$0") <command> [arguments]"
-    Console::Info ""
+    echo
     Console::Info "Commands:"
 
     for i in "${!COMMANDER_COMMANDS[@]}"; do
