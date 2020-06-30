@@ -11,7 +11,7 @@ Param::NamedArgument()
 
     if [[ -n "${__param_last:-}" ]]; then
         if [[ -z "${!__param_no:-}" && "${__param_required:-}" == "true" ]]; then
-            printf "Err\n" 1>&2
+            printf "Missing parameter ${__param_no} in function ${FUNCNAME[0]}\n" 1>&2
             exit 1
         fi
 
