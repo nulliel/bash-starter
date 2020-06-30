@@ -186,10 +186,10 @@ Import::HTTP()
     fi
 
     if command -v curl 1>/dev/null 2>&1; then
-        curl --fail -sL --retry 3 -H "Cache-Control: no-cache" -o "${outFile}" "${source}/${package}" || return 1
+        curl --fail -sL --retry 3 -H "Cache-Control: no-cache" -o "${outFile}" "${source}/${package}?$(date +%s)" || return 1
     else
         echo "hie"
-        wget -t 3 -O - -o "${outFile}" "${source}/${package}" || return 1
+        wget -t 3 -O - -o "${outFile}" "${source}/${package}?$(date +%s)" || return 1
     fi
 }
 
