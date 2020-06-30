@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 # module
 
-################################################################################
-##
-################################################################################
 Param::NamedArgument()
 {
-    local commandWithArgs=( $1 )
-    local command="${commandWithArgs[0]}"
+    local __commandWithArgs=( $1 )
+    local __command="${__commandWithArgs[0]}"
 
     if [[ -n "${__param_last:-}" ]]; then
         if [[ -z "${!__param_no:-}" && "${__param_required:-}" == "true" ]]; then
@@ -19,8 +16,8 @@ Param::NamedArgument()
         unset __param_last
     fi
 
-    if [[ "${command}" == "__param=0" ]]; then
-        __param_last="${commandWithArgs[2]}"
+    if [[ "${__command}" == "__param=0" ]]; then
+        __param_last="${__commandWithArgs[2]}"
 
         [[ -z "${__param_no:-}" ]] && __param_no+=1
         __param_no+=1

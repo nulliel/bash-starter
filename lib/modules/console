@@ -9,7 +9,60 @@ Console::RawError()
     printf "%s\n" "$*" 1>&2
 }
 
+###############################################################################
+## Log Levels
+###############################################################################
 
+## Prints a bold message to the terminal
+##
+## Arguments:
+##
+##   $1 :: Text to print
+##
+info()
+{
+    string! message
+
+    printf "%s%b%s\n"      \
+           "${FONT_BOLD}"  \
+           "${message}"    \
+           "${FONT_RESET}" \
+        | fold -sw "$(tput cols)"
+}
+
+## Prints a bold yellow warning message to the terminal
+##
+## Arguments:
+##
+##   $1 :: Text to print
+##
+warning()
+{
+    string! message
+
+    printf "%s%b%s\n"                   \
+           "${FONT_BOLD}${FONT_YELLOW}" \
+           "${message}"                 \
+           "${FONT_RESET}"              \
+        | fold -sw "$(tput cols)"
+}
+
+## Prints a bold red error message to the terminal
+##
+## Arguments:
+##
+##   $1 :: Text to print
+##
+Console::Error()
+{
+    string! message
+
+    printf "%s%b%s\n"                 \
+           "${FONT_BOLD}${FONT_RED}"  \
+           "${message}"               \
+           "${FONT_RESET}"            \
+        | fold -sw "$(tput cols)"
+}
 
 
 
@@ -104,51 +157,7 @@ line()
     printf "%$(tput cols)s\n" | tr " " "-"
 }
 
-###############################################################################
-## Log Levels
-###############################################################################
 
-##
-# Prints a bold message to the terminal
-#
-# Arguments:
-#
-#   $1 :: Text to print
-##
-info()
-{
-    printf "%s%b%s\n"      \
-           "${FONT_BOLD}"  \
-           "${1}"          \
-           "${FONT_RESET}" \
-        | fold -sw "$(tput cols)"
-}
-
-## Print a bold yellow warning message to the terminal.
-##
-## $1 - Text to print.
-##
-warning()
-{
-    printf "%s%b%s\n"        \
-           "${FONT_BOLD}${FONT_YELLOW}" \
-           "${1}"            \
-           "${FONT_RESET}"   \
-        | fold -sw "$(tput cols)"
-}
-
-## Print a bold red error message to the terminal.
-##
-## $1 - Text to print.
-##
-error()
-{
-    printf "%s%b%s\n"      \
-           "${FONT_BOLD}${FONT_RED}"  \
-           "${1}"          \
-           "${FONT_RESET}" \
-        | fold -sw "$(tput cols)"
-}
 
 ###############################################################################
 ## Prompts
