@@ -14,5 +14,4 @@ System::Require()
 System::Initialize()
 {
     import console
-    import param
 }
