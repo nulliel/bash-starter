@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# module
+
+## Runs the set commands
+##
+## Arguments:
+##
+##   $1 - Command
+##   $@ - Command arguments
+##
+Commander::Run()
+{
+    local COMMAND="${1:-help}"
+    local COMMAND_VAR="${COMMANDER_COMMANDS["${COMMAND}"]:-}"
+
+    shift
+
+    if [[ -z "${COMMAND_VAR}" ]]; then
+        Console::Error "Unknown command '${COMMAND}'"
+        Commander::Help
+        exit 1
+    fi
+
+    local -n COMMAND_VAR="${COMMANDER_COMMANDS["${COMMAND}"]}"
+
+    "${COMMAND_VAR[1]}" "$@"
+}
+
+## Adds a command to be managed by commander
+##
+## Arguments:
+##
+##   $1 :: Command name
+##   $2 :: Command description
+##   $3 :: Command function
+##
+Commander::Command()
+{
+    string! name
+    string! description
+    string! function
+
+    COMMANDER_COMMANDS[$name]="COMMANDER_COMMAND_${name}"
+
+    local -n COMMAND_VAR="${COMMANDER_COMMANDS[$name]}"
+    COMMAND_VAR=("$description" "$function")
+}
+
+## Shows the help dialog
+##
+Commander::Help()
+{
+    Console::Info "Usage: $(basename "$0") <command> [arguments]"
+    Console::Info ""
+    Console::Info "Commands:"
+
+    for i in "${!COMMANDER_COMMANDS[@]}"; do
+        local -n COMMAND_VAR="${COMMANDER_COMMANDS["$i"]}"
+
+        Console::Info "    ${i}\t${COMMAND_VAR[0]}"
+    done
+
+    echo ""
+}
+
+Commander::Initialize()
+{
+    import console
+
+    declare -Ag COMMANDER_COMMANDS=()
+
+    Commander::Command "help" "Show this help menu" "Commander::Help"
+}
