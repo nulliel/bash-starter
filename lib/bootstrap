@@ -436,6 +436,7 @@ Bootstrap::Main()
     ############################################################################
     import "core/module"
     import "core/param"
+    import "core/trap"
 
     for module in "${BASH_STARTER_DEFAULT_MODULES[@]}"; do
         import "${module}"

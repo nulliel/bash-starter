@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+##
+##
+##
+Trap::Trap()
+{
+    local newCommand="${1}" && shift
+    local currentCommand=""
+
+    for signal in "${@}"; do
+        currentCommand="$(trap -p "${signal}" | awk -F"'" '{print $2}')"
+
+        [[ -z "${currentCommand}" ]] && currentCommand=""
+
+        trap "${currentCommand};${newCommand}" "${signal}"
+    done
+}
+
+alias trap=Trap::Trap
